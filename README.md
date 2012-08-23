@@ -26,3 +26,8 @@ pip install -r requirements.txt
 ```console
 python manage.py test --unit
 ```
+
+
+# Further info:
+
+[Speakerdeck](http://speakerdeck.com/u/gabrielfalcao)
