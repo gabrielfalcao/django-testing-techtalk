@@ -2,6 +2,31 @@
 # -*- coding: utf-8 -*-
 from mock import patch
 from yipit.models import Deal
+from redis import ConnectionError
+
+
+@patch('yipit.models.Redis')
+def test_get_related_deals_returns_empty_list_upon_exception(Redis):
+    (u"Get related deals should return an empty list if "
+     "redis raises an exception")
+    # Given an instance of Redis connection
+    connection = Redis.return_value
+
+    # And that by calling connection.zrange it raises an exception
+    connection.zrange.side_effect = ConnectionError("BOOM!")
+
+    # When I get related deals from a given deal
+    deal = Deal()
+    deal.id = 55
+    related_deals = deal.get_related_deals()
+
+    # Then related deals is an empty list
+    related_deals.should.equal([])
+
+    # And zrange was called appropriately
+    connection.zrange.assert_called_once_with(
+        "yipit:related-deals:55", 0, -1,
+    )
 
 
 @patch('yipit.models.Deal.objects')
@@ -33,7 +58,6 @@ def test_get_related_deals_from_redis(Redis, deal_queryset):
 
 def test_deal_is_human_readable_when_wrapped_as_unicode():
     (u"A Deal should be human readable after wrapped in unicode")
-    import requests
     from yipit.models import Deal
 
     # Given a deal with title, source and expiration date
